@@ -7,3 +7,8 @@ Plans:
 2 - implement as a gui
 
 3 - add ability to scan sudoku puzzle using camera
+
+ideas:
+
+add ability to generate sudoku puzzles
+add ability to play the game
