@@ -7,7 +7,42 @@ CELL_SIZE = 50
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+YELLOW = (255, 255, 0)
 
+class Tile:
+    def __init__(self, value, row, col):
+        self.font = pygame.font.Font(None, 30)
+        self.value = value
+        self.row = row
+        self.col = col
+        self.rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+        self.text = self.font.render(str(value), True, BLACK)
+        self.text_rect = self.text.get_rect(center = self.rect.center)
+        self.color = WHITE
+
+    def get_value(self):
+        return self.value
+
+    def get_rect(self):
+        return self.rect
+    
+    def get_text(self):
+        return self.text
+    
+    def get_text_rect(self):
+        return self.text_rect
+
+    def get_color(self):
+        return self.color
+    
+    def set_value(self, value):
+        self.value = value
+        self.text = self.font.render(str(value), True, BLACK)
+        self.text_rect = self.text.get_rect(center = self.rect.center)
+    
+    def set_color(self, color):
+        self.color = color
+    
 class Board:
     def __init__(self):
         self.board = [[0, 0, 0, 2, 6, 0, 7, 0, 1],
@@ -24,15 +59,18 @@ class Board:
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
                 cell_value = self.board[i][j]
-                cell_rect = pygame.Rect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                pygame.draw.rect(screen, WHITE, cell_rect)
+                tile = Tile(cell_value, i, j)
+                pygame.draw.rect(screen, tile.get_color(), tile.get_rect())
 
                 if cell_value != 0:
-                    cell_font = pygame.font.Font(None, 30)
-                    cell_text = cell_font.render(str(cell_value), True, BLACK)
-                    cell_text_rect = cell_text.get_rect(center = cell_rect.center)
+                    cell_text = tile.get_text()
+                    cell_text_rect = tile.get_text_rect()
                     screen.blit(cell_text, cell_text_rect)
+        
+        self.draw_grid(screen)
+        pygame.display.update()
 
+    def draw_grid(self, screen):
         for i in range(BOARD_SIZE + 1):
             start_pos = (i * CELL_SIZE, 0)
             end_pos = (i * CELL_SIZE, BOARD_SIZE * CELL_SIZE)
@@ -41,7 +79,13 @@ class Board:
             start_pos = (0, i * CELL_SIZE)
             end_pos = (BOARD_SIZE * CELL_SIZE, i * CELL_SIZE)
             pygame.draw.line(screen, BLACK, start_pos, end_pos)
+        
+        pygame.display.update()
 
+    def update_board(self, screen, tile):
+        pygame.draw.rect(screen, tile.get_color(), tile.get_rect())
+        if tile.get_value() != 0:
+            screen.blit(tile.get_text(), tile.get_text_rect())
         pygame.display.update()
 
     def draw_solve_button(self, screen):
@@ -78,6 +122,9 @@ class Game:
         self.board = Board()
 
     def run(self):
+        self.board.draw_board(self.screen)
+        self.board.draw_solve_button(self.screen)
+
         running = True
         while running:
             for event in pygame.event.get():
@@ -88,13 +135,58 @@ class Game:
                     solve_button_rect = pygame.Rect(10, BOARD_SIZE * CELL_SIZE + 10, BOARD_SIZE * CELL_SIZE - 20, 60)
                     if solve_button_rect.collidepoint(pos):
                         self.board.solve(self.screen)
-            
-            self.board.draw_board(self.screen)
-            self.board.draw_solve_button(self.screen)
+                    else:
+                        current_tile = self.get_tile(pos)
+                        if current_tile:
+                            self.update_board(current_tile)
 
+            self.board.draw_grid(self.screen)
         pygame.quit()
+
+    def get_tile(self, pos):
+        row = pos[1] // CELL_SIZE
+        col = pos[0] // CELL_SIZE
+        if (row < BOARD_SIZE and col < BOARD_SIZE):
+            return Tile(self.board.board[row][col], row, col)
+        return None
+    
+    def update_board(self, tile):
+        if tile.value == 0:
+            tile.set_color(YELLOW)
+            self.board.update_board(self.screen, tile)
+            new_value = self.get_user_input()
+            tile.set_color(WHITE)
+            tile.set_value(new_value)
+            self.board.board[tile.row][tile.col] = new_value
+            self.board.update_board(self.screen, tile)
+
+
+    def get_user_input(self):
+        self.board.draw_grid(self.screen)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_1:
+                        return 1
+                    elif event.key == pygame.K_2:
+                        return 2
+                    elif event.key == pygame.K_3:
+                        return 3
+                    elif event.key == pygame.K_4:
+                        return 4
+                    elif event.key == pygame.K_5:
+                        return 5
+                    elif event.key == pygame.K_6:
+                        return 6
+                    elif event.key == pygame.K_7:
+                        return 7
+                    elif event.key == pygame.K_8:
+                        return 8
+                    elif event.key == pygame.K_9:
+                        return 9
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    return 0
 
 
 game = Game()
 game.run()
-    

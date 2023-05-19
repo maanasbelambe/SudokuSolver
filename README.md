@@ -12,3 +12,5 @@ ideas:
 
 add ability to generate sudoku puzzles
 add ability to play the game
+add ability to check current state
+    mark wrong squares in red
