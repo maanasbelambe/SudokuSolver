@@ -8,6 +8,7 @@ CELL_SIZE = 50
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
+RED = (255, 0, 0)
 
 class Tile:
     def __init__(self, value, row, col):
@@ -19,21 +20,6 @@ class Tile:
         self.text = self.font.render(str(value), True, BLACK)
         self.text_rect = self.text.get_rect(center = self.rect.center)
         self.color = WHITE
-
-    def get_value(self):
-        return self.value
-
-    def get_rect(self):
-        return self.rect
-    
-    def get_text(self):
-        return self.text
-    
-    def get_text_rect(self):
-        return self.text_rect
-
-    def get_color(self):
-        return self.color
     
     def set_value(self, value):
         self.value = value
@@ -54,18 +40,18 @@ class Board:
                       [0, 0, 9, 3, 0, 0, 0, 7, 4],
                       [0, 4, 0, 0, 5, 0, 0, 3, 6],
                       [7, 0, 3, 0, 1, 8, 0, 0, 0]]
+        self.solved_board = [row[:] for row in self.board]
+        sudoku_text.solve(self.solved_board)
         
     def draw_board(self, screen):
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
                 cell_value = self.board[i][j]
                 tile = Tile(cell_value, i, j)
-                pygame.draw.rect(screen, tile.get_color(), tile.get_rect())
+                pygame.draw.rect(screen, tile.color, tile.rect)
 
                 if cell_value != 0:
-                    cell_text = tile.get_text()
-                    cell_text_rect = tile.get_text_rect()
-                    screen.blit(cell_text, cell_text_rect)
+                    screen.blit(tile.text, tile.text_rect)
         
         self.draw_grid(screen)
         pygame.display.update()
@@ -83,9 +69,10 @@ class Board:
         pygame.display.update()
 
     def update_board(self, screen, tile):
-        pygame.draw.rect(screen, tile.get_color(), tile.get_rect())
-        if tile.get_value() != 0:
-            screen.blit(tile.get_text(), tile.get_text_rect())
+        pygame.draw.rect(screen, tile.color, tile.rect)
+        if tile.value != 0:
+            screen.blit(tile.text, tile.text_rect)
+        self.draw_grid(screen)
         pygame.display.update()
 
     def draw_solve_button(self, screen):
@@ -155,11 +142,16 @@ class Game:
             tile.set_color(YELLOW)
             self.board.update_board(self.screen, tile)
             new_value = self.get_user_input()
+            if new_value != self.board.solved_board[tile.row][tile.col] and new_value != 0:
+                tile.set_color(RED)
+                tile.set_value(new_value)
+                self.board.update_board(self.screen, tile)
+                time.sleep(2)
+                new_value = 0
             tile.set_color(WHITE)
             tile.set_value(new_value)
             self.board.board[tile.row][tile.col] = new_value
             self.board.update_board(self.screen, tile)
-
 
     def get_user_input(self):
         self.board.draw_grid(self.screen)
@@ -186,7 +178,6 @@ class Game:
                         return 9
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     return 0
-
 
 game = Game()
 game.run()
