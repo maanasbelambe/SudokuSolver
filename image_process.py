@@ -1,21 +1,7 @@
 from image_capture import *
 import cv2
 import numpy as np
-
-def preprocess(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (9, 9), 0)
-    threshold = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-    return threshold
-
-def find_contours(image):
-    contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    #loop through contours to find rectangular one => should fix inconsistencies
-    sudoku_contour = max(contours, key=cv2.contourArea)
-    epsilon = 0.1 * cv2.arcLength(sudoku_contour, True)
-    sudoku_approx = cv2.approxPolyDP(sudoku_contour, epsilon, True)
-    return sudoku_approx
+import imutils
 
 def perspective_transform(image, points):
     target = np.float32([[0, 0], [0, 450], [450, 450], [450, 0]])
@@ -23,19 +9,30 @@ def perspective_transform(image, points):
     transformed = cv2.warpPerspective(image, transform_matrix, (450, 450))
     return transformed
 
+def preprocess_find_board(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    bfilter = cv2.bilateralFilter(gray, 13, 20, 20)
+    edged = cv2.Canny(bfilter, 30, 180)
+    keypoints = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours = imutils.grab_contours(keypoints)
+    contoured_image = cv2.drawContours(image.copy(), contours, -1, (0, 255, 0), 3)
+    cv2.imshow("Contours", contoured_image)
+
+    sudoku_approx = None
+    largest_area = 0
+
+    for contour in contours:
+        approx = cv2.approxPolyDP(contour, 15, True)
+        if len(approx) == 4:
+            area = cv2.contourArea(contour)
+            if area > largest_area:
+                sudoku_approx = approx
+                largest_area = area
+    return perspective_transform(image, sudoku_approx)
+
 image_filename = capture_image()
 image = cv2.imread(image_filename)
-preprocess = preprocess(image)
-
-sudoku_contour = find_contours(preprocess)
-
-if sudoku_contour.shape[0] != 4:
-    raise ValueError("Sudoku contour is not a quadrilateral with 4 points.")
-
-sudoku_board = perspective_transform(image, sudoku_contour.reshape(4, 2))
-
-cv2.imshow("Original Image", image)
-cv2.imshow("Preprocessed Image", preprocess)
-cv2.imshow("Sudoku Board", sudoku_board)
+result = preprocess_find_board(image)
+cv2.imshow("Board", result)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
