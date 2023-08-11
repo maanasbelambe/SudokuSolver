@@ -16,7 +16,7 @@ def preprocess_find_board(image):
     keypoints = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours = imutils.grab_contours(keypoints)
     contoured_image = cv2.drawContours(image.copy(), contours, -1, (0, 255, 0), 3)
-    cv2.imshow("Contours", contoured_image)
+    #cv2.imshow("Contours", contoured_image)
 
     sudoku_approx = None
     largest_area = 0
@@ -30,9 +30,9 @@ def preprocess_find_board(image):
                 largest_area = area
     return perspective_transform(image, sudoku_approx)
 
-image_filename = capture_image()
-image = cv2.imread(image_filename)
-result = preprocess_find_board(image)
-cv2.imshow("Board", result)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+#image_filename = capture_image()
+#image = cv2.imread(image_filename)
+#result = preprocess_find_board(image)
+#cv2.imshow("Board", result)
+#cv2.waitKey(0)
+#cv2.destroyAllWindows()

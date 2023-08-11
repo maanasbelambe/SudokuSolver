@@ -30,8 +30,8 @@ class Tile:
         self.color = color
     
 class Board:
-    def __init__(self):
-        self.board = [[8, 0, 9, 7, 2, 0, 3, 0, 0], [0, 6, 5, 3, 4, 0, 0, 7, 0], [0, 4, 3, 0, 9, 1, 0, 6, 0], [5, 0, 6, 9, 1, 0, 2, 0, 0], [0, 9, 7, 6, 3, 0, 5, 0, 1], [1, 0, 2, 4, 0, 5, 7, 0, 0], [6, 0, 4, 0, 7, 3, 0, 5, 0], [9, 0, 8, 2, 5, 0, 6, 0, 3], [0, 5, 1, 0, 6, 9, 4, 0, 0]]
+    def __init__(self, board_array):
+        self.board = board_array
         self.solved_board = [row[:] for row in self.board]
         sudoku_text.solve(self.solved_board)
         
@@ -94,11 +94,11 @@ class Board:
         return False
 
 class Game:
-    def __init__(self):
+    def __init__(self, board_array):
         pygame.init()
         self.screen = pygame.display.set_mode((BOARD_SIZE * CELL_SIZE + 1, BOARD_SIZE * CELL_SIZE + 81))
         pygame.display.set_caption("Sudoku Solver")
-        self.board = Board()
+        self.board = Board(board_array)
 
     def run(self):
         self.board.draw_board(self.screen)
@@ -171,5 +171,15 @@ class Game:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     return 0
 
-game = Game()
-game.run()
+#board_array = [[0, 0, 0, 0, 0, 0, 0, 0, 0],
+#               [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#               [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#               [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#               [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#               [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#               [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#               [0, 0, 0, 0, 0, 0, 0, 0, 0],
+#               [0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+#game = Game(board_array)
+#game.run()
